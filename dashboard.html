@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fitness Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <!-- Simple top-navbar -->
+    <nav class="navbar">
+        <h1>💪 Fitness Tracker</h1>
+
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/add-workouts">Add Workouts</a>
+        </div>
+    </nav>
+
+
+    <div class="container">
+
+        <!-- Quick stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Sets</h3>
+                <p class="stat-number">{{ total_sets }}</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total Reps</h3>
+                <p class="stat-number">{{ total_reps }}</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Water Consumed</h3>
+                <p class="stat-number">{{ total_water }} ml</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Water Remaining</h3>
+                <p class="stat-number">{{ remaining_water }} ml</p>
+            </div>
+        </div>
+
+
+        <!-- Workouts for today -->
+        <div class="section">
+            <h2>Today Workout Plan</h2>
+
+            {% if workouts %}
+                <div class="workout-list">
+                    {% for workout in workouts %}
+                        <div class="workout-item">
+
+                            <div class="workout-info">
+                                <h3>{{ workout.name }}</h3>
+                                <p class="muscle-group">{{ workout.muscle_group }}</p>
+                                <p>{{ workout.sets }} sets × {{ workout.reps }} reps</p>
+
+                                {% if workout.notes %}
+                                    <p class="notes">Notes: {{ workout.notes }}</p>
+                                {% endif %}
+                            </div>
+
+                            <button class="btn-remove" 
+                                    type="button" 
+                                    data-planid="{{ workout.plan_id }}">
+                                Remove
+                            </button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="empty-message">
+                    No workouts planned for today. 
+                    <a href="/add-workouts">Add some workouts</a>
+                </p>
+            {% endif %}
+        </div>
+
+
+        <!-- Water section -->
+        <div class="section">
+            <h2>Water Intake Tracker</h2>
+
+            <div class="water-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" data-progress="{{ progress }}"></div>
+                </div>
+
+                <p>{{ total_water }} ml / {{ water_target }} ml</p>
+            </div>
+
+            <div class="water-buttons">
+                <!-- Default quick-add water buttons -->
+                <button class="btn-water" data-amount="250">+ 250ml Glass</button>
+                <button class="btn-water" data-amount="500">+ 500ml Bottle</button>
+                <button class="btn-water" data-amount="1000">+ 1L Bottle</button>
+            </div>
+        </div>
+
+    </div> <!-- container end -->
+
+
+    <!-- Page scripts -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // Set progress bar size visually
+            var bar = document.querySelector(".progress-fill");
+            if (bar) {
+                var percent = bar.getAttribute("data-progress") || 0;
+                bar.style.width = percent + "%";
+            }
+
+            // Removing workouts from today's plan
+            var removeBtns = document.querySelectorAll(".btn-remove");
+            removeBtns.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var id = this.getAttribute("data-planid");
+                    var ok = confirm("Remove this workout from today’s plan?");
+
+                    if (!ok) return;
+
+                    fetch("/api/remove-from-plan/" + id, {
+                        method: "DELETE"
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (result) {
+                        if (result.success) {
+                            location.reload();
+                        }
+                    });
+                });
+            });
+
+            // Water quick-add buttons
+            var waterBtns = document.querySelectorAll(".btn-water");
+            waterBtns.forEach(function (btn) {
+                btn.addEventListener("click", function () {
+                    var amount = parseInt(this.dataset.amount, 10);
+
+                    fetch("/api/log-water", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ amount: amount })
+                    })
+                    .then(function (res) { return res.json(); })
+                    .then(function (result) {
+                        if (result.success) {
+                            location.reload();
+                        }
+                    });
+                });
+            });
+
+        });
+    </script>
+
+</body>
+</html>

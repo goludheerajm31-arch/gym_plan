@@ -1,0 +1,39 @@
+{
+  "custom_workouts": [],
+  "daily_plans": {
+    "2025-11-23": [
+      {
+        "name": "Push-ups",
+        "muscle_group": "Chest",
+        "reps": 10,
+        "sets": 3,
+        "notes": "",
+        "plan_id": 1
+      },
+      {
+        "name": "Bench Press",
+        "muscle_group": "Chest",
+        "reps": 10,
+        "sets": 3,
+        "notes": "",
+        "plan_id": 2
+      },
+      {
+        "name": "Chest Fly",
+        "muscle_group": "Chest",
+        "reps": 10,
+        "sets": 3,
+        "notes": "",
+        "plan_id": 3
+      }
+    ]
+  },
+  "water_intake": {
+    "2025-11-23": [
+      250,
+      250,
+      500,
+      1000
+    ]
+  }
+}

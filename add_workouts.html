@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Workouts</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <h1>💪 Fitness Tracker</h1>
+        <div class="nav-links">
+            <a href="/">Dashboard</a>
+            <a href="/add-workouts">Add Workouts</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Custom Workout Form -->
+        <div class="section">
+            <h2>Create Custom Workout</h2>
+            <form id="customWorkoutForm" class="workout-form">
+
+                <div class="form-group">
+                    <label for="workoutName">Workout Name</label>
+                    <input type="text" id="workoutName" name="workoutName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="muscleGroup">Muscle Group</label>
+                    <select id="muscleGroup" name="muscleGroup" required>
+                        <option value="">Select muscle group</option>
+                        <option value="Chest">Chest</option>
+                        <option value="Back">Back</option>
+                        <option value="Legs">Legs</option>
+                        <option value="Arms">Arms</option>
+                        <option value="Shoulders">Shoulders</option>
+                        <option value="Core">Core</option>
+                        <option value="Cardio">Cardio</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="reps">Reps</label>
+                        <input type="number" id="reps" name="reps" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="sets">Sets</label>
+                        <input type="number" id="sets" name="sets" min="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">Notes (optional)</label>
+                    <textarea id="notes" name="notes" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn-primary">Save Custom Workout</button>
+            </form>
+        </div>
+
+        <!-- Common Workouts -->
+        <div class="section">
+            <h2>Common Workouts</h2>
+            {% for muscle, exercises in common_workouts.items() %}
+            <div class="muscle-group-section">
+                <h3>{{ muscle }}</h3>
+                <div class="exercise-grid">
+                    {% for exercise in exercises %}
+                    <button type="button" class="exercise-card" data-name="{{ exercise }}" data-muscle="{{ muscle }}">
+                        <span class="exercise-name">{{ exercise }}</span>
+                        <span class="add-icon">+</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Custom Workouts -->
+        {% if custom_workouts %}
+        <div class="section">
+            <h2>Your Custom Workouts</h2>
+            <div class="exercise-grid">
+                {% for workout in custom_workouts %}
+                <button type="button" class="exercise-card custom"
+                    data-id="{{ workout.id }}"
+                    data-name="{{ workout.name }}"
+                    data-muscle="{{ workout.muscle_group }}"
+                    data-reps="{{ workout.reps }}"
+                    data-sets="{{ workout.sets }}"
+                    data-notes="{{ workout.notes }}">
+                    <span class="exercise-name"><strong>{{ workout.name }}</strong></span>
+                    <span class="muscle-group">{{ workout.muscle_group }}</span>
+                    <span>{{ workout.sets }} x {{ workout.reps }}</span>
+                    <span class="add-icon">+</span>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <!-- Modal for Quick Add -->
+    <div id="quickAddModal" class="modal">
+        <div class="modal-content">
+            <h3>Add to Today Plan</h3>
+            <p id="modalWorkoutName"></p>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="modalReps">Reps</label>
+                    <input type="number" id="modalReps" name="modalReps" value="10" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="modalSets">Sets</label>
+                    <input type="number" id="modalSets" name="modalSets" value="3" min="1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="modalNotes">Notes (optional)</label>
+                <textarea id="modalNotes" name="modalNotes" rows="2"></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="button" class="btn-secondary" id="cancelBtn">Cancel</button>
+                <button type="button" class="btn-primary" id="confirmBtn">Add to Plan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Track which workout is being added
+        let currentWorkout = {};
+
+        // Handle custom workout submission
+        const customForm = document.getElementById('customWorkoutForm');
+        customForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const workout = {
+                name: document.getElementById('workoutName').value,
+                muscle_group: document.getElementById('muscleGroup').value,
+                reps: parseInt(document.getElementById('reps').value),
+                sets: parseInt(document.getElementById('sets').value),
+                notes: document.getElementById('notes').value
+            };
+
+            fetch('/api/add-custom-workout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(workout)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Custom workout saved!');
+                    window.location.reload();
+                }
+            });
+        });
+
+        // Open modal for common workouts
+        document.querySelectorAll('.exercise-card:not(.custom)').forEach(card => {
+            card.addEventListener('click', () => {
+                currentWorkout = {
+                    name: card.dataset.name,
+                    muscle_group: card.dataset.muscle
+                };
+                document.getElementById('modalWorkoutName').textContent = `${currentWorkout.name} (${currentWorkout.muscle_group})`;
+                document.getElementById('modalReps').value = 10;
+                document.getElementById('modalSets').value = 3;
+                document.getElementById('modalNotes').value = '';
+                document.getElementById('quickAddModal').style.display = 'flex';
+            });
+        });
+
+        // Open modal for custom workouts
+        document.querySelectorAll('.exercise-card.custom').forEach(card => {
+            card.addEventListener('click', () => {
+                currentWorkout = {
+                    name: card.dataset.name,
+                    muscle_group: card.dataset.muscle
+                };
+                document.getElementById('modalWorkoutName').textContent = `${currentWorkout.name} (${currentWorkout.muscle_group})`;
+                document.getElementById('modalReps').value = card.dataset.reps;
+                document.getElementById('modalSets').value = card.dataset.sets;
+                document.getElementById('modalNotes').value = card.dataset.notes;
+                document.getElementById('quickAddModal').style.display = 'flex';
+            });
+        });
+
+        // Cancel modal
+        document.getElementById('cancelBtn').addEventListener('click', () => {
+            document.getElementById('quickAddModal').style.display = 'none';
+        });
+
+        // Confirm add to plan
+        document.getElementById('confirmBtn').addEventListener('click', () => {
+            const workout = {
+                name: currentWorkout.name,
+                muscle_group: currentWorkout.muscle_group,
+                reps: parseInt(document.getElementById('modalReps').value),
+                sets: parseInt(document.getElementById('modalSets').value),
+                notes: document.getElementById('modalNotes').value
+            };
+
+            fetch('/api/add-to-plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(workout)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Added to today plan!');
+                    document.getElementById('quickAddModal').style.display = 'none';
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
