@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import json
 import os
+
 from datetime import datetime
 
 app = Flask(__name__)
@@ -45,6 +46,7 @@ def save_data(data):
 COMMON_WORKOUTS = {
     "Chest": ["Push-ups", "Bench Press", "Chest Fly"],
     "Back": ["Pull-ups", "Deadlift", "Row"],
+    
     "Legs": ["Squats", "Lunges", "Leg Press"],
     "Arms": ["Bicep Curls", "Tricep Dips"],
     "Shoulders": ["Shoulder Press", "Lateral Raise"]
