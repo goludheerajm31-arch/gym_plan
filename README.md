@@ -1,5 +1,6 @@
 # The Fitness Tracker Web App
 MY NAME IS DHEERAJ KUMAR MAHTO
+
 REGISTRATION NUMBER- 25BCE10465
 
 This project is a simple and intuitive web-based Fitness Tracker built using Python (Flask) ,  HTML  , and CSS It allows users to plan and track their daily workouts, create custom exercises, and monitor water intake in a clean and minimal interface. The application does not require any database setup; all data is stored locally in a JSON file, making it lightweight and easy to deploy.
